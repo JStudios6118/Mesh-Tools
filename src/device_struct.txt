@@ -1,3 +1,9 @@
+	async sendPacket(byteData, portNum, destination, channel = ChannelNumber.Primary, wantAck = true, wantResponse = true, echoResponse = false, replyId, emoji) {
+
+
+
+
+
 MeshDevice {
   log: Logger {
     logObj: undefined,

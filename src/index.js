@@ -1,4 +1,4 @@
-const { MeshDevice } = require("@meshtastic/core");
+const { MeshDevice, Protobuf  } = require("@meshtastic/core");
 const { TransportNodeSerial } = require("@meshtastic/transport-node-serial");
 const { EventEmitter } = require('events');
 const { json } = require("stream/consumers");
@@ -26,6 +26,8 @@ class Device {
     #ownId = null;
     #longName;
     #shortName;
+
+    #pendingMessages = new Map();
     
     events = new EventEmitter();
 
@@ -58,20 +60,40 @@ class Device {
         this.#ownId = this.#device.myNodeInfo.myNodeNum;
 
         // Add an event listerner for ownNodeInfo to get the nodes own information
-        this.#device.events.onMyNodeInfo.subscribe((nodeInfo) => {
-            if (this.#ownId === nodeInfo.num){
-                this.logger.log("Set own names!")
-                this.#longName = nodeInfo.user.longName;
-                this.#shortName = nodeInfo.user.shortName;
-                this.events.emit('ownNameReceived',{longName:this.#longName, shortName:this.#shortName})
-            }
-        })
+        this.#setupListeners();
 
         this.events.emit('connect', {ownId:this.#ownId});
 
         return {ownId:this.#ownId}
     }
 
+    #setupListeners() {
+        this.#device.events.onNodeInfoPacket.subscribe((nodeInfo) => {
+            if (nodeInfo.num === this.#ownId) {
+                this.#longName = nodeInfo.user.longName;
+                this.#shortName = nodeInfo.user.shortName;
+                this.events.emit('ownNameReceived', { longName: this.#longName, shortName:this.#shortName });
+            }
+        });
+
+        this.#device.events.onMessagePacket.subscribe((packet) => {
+            if (packet.to === this.#ownId && packet.type === 'direct'){
+                this.events.emit('receiveDm', {...packet})
+            } else if (packet.type === 'broadcast') {
+                this.events.emit('receiveMessage',{...packet})
+            }
+        });
+
+
+    }
+
+    sendMessage(){
+        return;
+    }
+
+    async sendDirectMessage(message,to){
+        const id = await this.#device.sendText(message,to);  
+    }
 
 }
 
