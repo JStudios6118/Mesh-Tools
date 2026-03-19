@@ -1,0 +1,1 @@
+This is a NPM package I am building that abstracts many of the functions of the Meshtastic NodeJS CLI and allows you just to focus on developement. This was primarily created to assist in making Meshtastic bots.
