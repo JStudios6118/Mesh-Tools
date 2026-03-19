@@ -1,6 +1,6 @@
 const { MeshDevice } = require("@meshtastic/core");
 const { TransportNodeSerial } = require("@meshtastic/transport-node-serial");
-const EventEmitter = require('events');
+const { EventEmitter } = require('events');
 const { json } = require("stream/consumers");
 
 //Logger.setLogLevel(LogLevel.NONE)
@@ -26,6 +26,8 @@ class Device {
     #ownId = null;
     #longName;
     #shortName;
+    
+    events = new EventEmitter();
 
     get ownId(){ return this.#ownId }
 
@@ -50,17 +52,24 @@ class Device {
 
         this.logger.log('Device Successfully Configured!')
 
-        console.log(this.#device)
+        //console.log(this.#device)
 
         // Save nodes id. Useful for handling dms
         this.#ownId = this.#device.myNodeInfo.myNodeNum;
 
         // Add an event listerner for ownNodeInfo to get the nodes own information
         this.#device.events.onMyNodeInfo.subscribe((nodeInfo) => {
-            if (this.#ownId === nodeInfo.num)
-            this.#longName = nodeInfo.user.longName;
-            this.#shortName = nodeInfo.user.shortName;
+            if (this.#ownId === nodeInfo.num){
+                this.logger.log("Set own names!")
+                this.#longName = nodeInfo.user.longName;
+                this.#shortName = nodeInfo.user.shortName;
+                this.events.emit('ownNameReceived',{longName:this.#longName, shortName:this.#shortName})
+            }
         })
+
+        this.events.emit('connect', {ownId:this.#ownId});
+
+        return {ownId:this.#ownId}
     }
 
 
@@ -85,7 +94,7 @@ class SerialNode extends Device {
         this.logger.log("Creating Transport...")
 
         const transport = await TransportNodeSerial.create(this.#serial_address);
-        await super.connect(transport);
+        return await super.connect(transport);
         
     }
 
