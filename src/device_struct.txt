@@ -1,6 +1,65 @@
 	async sendPacket(byteData, portNum, destination, channel = ChannelNumber.Primary, wantAck = true, wantResponse = true, echoResponse = false, replyId, emoji) {
 
-
+NODEINFO: {
+  "id": 3692082226,
+  "rxTime": "2026-03-19T23:20:40.000Z",
+  "type": "broadcast",
+  "from": 2996808676,
+  "to": 4294967295,
+  "channel": 0,
+  "data": {
+    "$typeName": "meshtastic.User",
+    "id": "!b29fabe4",
+    "longName": "KK6JDCmesh",
+    "shortName": "JS16",
+    "macaddr": {
+      "0": 128,
+      "1": 241,
+      "2": 178,
+      "3": 159,
+      "4": 171,
+      "5": 228
+    },
+    "hwModel": 110,
+    "isLicensed": false,
+    "role": 0,
+    "publicKey": {
+      "0": 22,
+      "1": 116,
+      "2": 246,
+      "3": 84,
+      "4": 91,
+      "5": 4,
+      "6": 139,
+      "7": 31,
+      "8": 19,
+      "9": 159,
+      "10": 27,
+      "11": 245,
+      "12": 132,
+      "13": 152,
+      "14": 4,
+      "15": 229,
+      "16": 119,
+      "17": 30,
+      "18": 69,
+      "19": 240,
+      "20": 178,
+      "21": 74,
+      "22": 192,
+      "23": 88,
+      "24": 39,
+      "25": 86,
+      "26": 139,
+      "27": 80,
+      "28": 116,
+      "29": 19,
+      "30": 18,
+      "31": 16
+    },
+    "isUnmessagable": false
+  }
+}
 
 
 

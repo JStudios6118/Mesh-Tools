@@ -40,7 +40,7 @@ class Logger {
 class NodeDB {
 
     #db = null;
-    #dbData
+    #dbData;
     #dbPath;
 
     async init(databasePath){
@@ -49,20 +49,34 @@ class NodeDB {
         await this.#db.write();
     }
 
-    async pushNode(nodeInfo){
-        this.#dbData.nodes.push(nodeInfo)
-        await this.#db.write();
+    push(node){
+        
     }
+
 }
 
 class Node {
-    constructor(longName,shortName,id,number,lastHeard){
+    constructor(longName,shortName,id,number){
         this.longName = longName;
         this.shortName = shortName;
         this.id = id;
         this.number = number;
         this.lastHeard = Math.floor(Date.now() / 1000); // Set lastHeard time to current epoch time
+        this.storedData = {};
     }
+
+    // Returns all data on Node as a JSON object.
+    info(){
+        return {
+            longName:this.longName,
+            shortName:this.shortName,
+            id:this.id,
+            number:this.number,
+            lastHeard:this.lastHeard,
+            storedData:this.storedData
+        }
+    }
+
 }
 
 class Device {
@@ -72,7 +86,7 @@ class Device {
     #longName;
     #shortName;
 
-    nodes = null;
+    db = null;
 
     //#pendingMessages = new Map();
     
@@ -144,9 +158,16 @@ class Device {
 
         this.#device.events.onMeshPacket.subscribe((packet) => {
             if (packet.from === 2996808676){
-                this.logger.log(`RAW ROUTING PACKET: ${JSON.stringify(packet)}`);
             }
         });
+
+        this.#device.events.onUserPacket.subscribe((packet) => {
+            const dat = packet.data
+            const data = {longName:dat.longName, shortName:dat.shortName, id:dat.id, number:packet.id}
+            //console.log(`NODEINFO: ${JSON.stringify(packet,null,2)}`)
+            const nodeInfo = new Node(data.longName,data.shortName,data.id,data.number);
+            this.events.emit("nodeInfoReceived", {...nodeInfo});
+        })
 
         this.#device.events.onMessagePacket.subscribe((packet) => {
             if (packet.to === this.#ownId && packet.type === 'direct'){
@@ -165,7 +186,8 @@ class Device {
 
     async sendDirectMessage(message,to){
         const id = await this.#device.sendText(message,to);
-        this.logger.log(`PACKER ID: ${id}`)
+        return { packetId:id }
+        //this.logger.log(`PACKER ID: ${id}`)
     }
 
 }

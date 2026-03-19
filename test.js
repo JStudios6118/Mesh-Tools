@@ -12,3 +12,7 @@ node.startNodeDB(path.join(__dirname))
 node.events.on('receiveDm',(data)=>{
     node.sendDirectMessage(`MIRROR: ${data.data}`,data.from)
 })
+
+node.events.on('nodeInfoReceived', (node) => {
+    console.log(node)
+})
