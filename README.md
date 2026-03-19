@@ -12,9 +12,9 @@ I tried my best to abstract all of the features that are unnecessary to the aver
 Here is all of the code needed to connect to your node. It is much shorter than what would be needed if you were not using my package.
 ```js
 // Import the package (not on npm yet)
-const mt = require('mesh-tools')
+const MeshTools = require('mesh-tools')
 // Define the port your node is on over serial
-const node = new mt.SerialNode('/dev/ttyACM1');
+const node = new MeshTools.SerialNode('/dev/ttyACM1');
 // Connect the node to your computer
 node.connect()
 ```
