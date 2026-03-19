@@ -1,5 +1,6 @@
 const { MeshDevice, Protobuf  } = require("@meshtastic/core");
 const { TransportNodeSerial } = require("@meshtastic/transport-node-serial");
+const { log } = require("console");
 const { EventEmitter } = require('events');
 const { json } = require("stream/consumers");
 
@@ -39,6 +40,12 @@ class Device {
 
     // Connect super script. Uses transport to init a MeshDevice
     async connect(transport){
+
+        if (transport.port?.flush) {
+            this.logger.log('Flushing Transport')
+            await transport.port.flush();
+        }
+
         this.#device = new MeshDevice(transport);
         this.#device.log.settings.minLevel = 5;
 
@@ -76,6 +83,10 @@ class Device {
             }
         });
 
+        this.#device.events.onMeshPacket.subscribe((packet) => {
+            this.logger.log(`RAW ROUTING PACKET: ${JSON.stringify(packet)}`);
+        });
+
         this.#device.events.onMessagePacket.subscribe((packet) => {
             if (packet.to === this.#ownId && packet.type === 'direct'){
                 this.events.emit('receiveDm', {...packet})
@@ -88,11 +99,12 @@ class Device {
     }
 
     sendMessage(){
-        return;
+        const id = this.#device.sendText(message,to);  
     }
 
     async sendDirectMessage(message,to){
-        const id = await this.#device.sendText(message,to);  
+        const id = await this.#device.sendText(message,to);
+        this.logger.log(`PACKER ID: ${id}`)
     }
 
 }
