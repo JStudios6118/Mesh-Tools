@@ -1,0 +1,17 @@
+{
+  "name": "mesh-tools",
+  "version": "1.0.0",
+  "description": "A helpful package for automating the Meshtastic node api",
+  "license": "ISC",
+  "author": "Josh Carlson",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "@meshtastic/core": "^2.6.7",
+    "@meshtastic/transport-node-serial": "^0.0.2"
+  },
+  "devDependencies": {}
+}
