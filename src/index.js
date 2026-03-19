@@ -8,6 +8,18 @@ const { json } = require("stream/consumers");
 
 // Base class for all nodes (connected to host device)
 
+/*
+
+TODO:
+-ADD MESSAGE ACKNOWLEDGEMENT HANDLING
+-ADD BROADCAST MESSAGING
+-ADD TCP AND HTTP CONNECTION TYPES
+-ADD A NODE DATABASE BUILDER
+-MAKE EVERYTHING ASYNCHRONOUS
+
+
+*/
+
 class Logger {
     constructor(enabled=false){
         this.enabled = enabled;
@@ -70,7 +82,7 @@ class Device {
         this.#setupListeners();
 
         this.events.emit('connect', {ownId:this.#ownId});
-
+        
         return {ownId:this.#ownId}
     }
 
@@ -84,7 +96,7 @@ class Device {
         });
 
         this.#device.events.onMeshPacket.subscribe((packet) => {
-            this.logger.log(`RAW ROUTING PACKET: ${JSON.stringify(packet)}`);
+            //this.logger.log(`RAW ROUTING PACKET: ${JSON.stringify(packet)}`);
         });
 
         this.#device.events.onMessagePacket.subscribe((packet) => {
