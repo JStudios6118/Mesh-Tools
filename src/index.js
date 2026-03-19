@@ -2,7 +2,7 @@ const { MeshDevice, Protobuf  } = require("@meshtastic/core");
 const { TransportNodeSerial } = require("@meshtastic/transport-node-serial");
 const { log } = require("console");
 const { EventEmitter } = require('events');
-const { json } = require("stream/consumers");
+const { JSONFilePreset } = require("lowdb/node");
 
 //Logger.setLogLevel(LogLevel.NONE)
 
@@ -33,12 +33,37 @@ class Logger {
     }
 }
 
+class NodeDB {
+
+    #db;
+    #dbPath;
+
+    constructor(databasePath){
+        this.#dbPath = databasePath;
+
+        this.#db = JSONFilePreset('nodeDb.json', { users: [] });
+
+    }
+}
+
+class Node {
+    constructor(longName,shortName,id,number,lastHeard){
+        this.longName = longName;
+        this.shortName = shortName;
+        this.id = id;
+        this.number = number;
+        this.lastHeard = Math.floor(Date.now() / 1000); // Set lastHeard time to current epoch time
+    }
+}
+
 class Device {
 
     #device = null;
     #ownId = null;
     #longName;
     #shortName;
+
+    #nodeDb = null;
 
     #pendingMessages = new Map();
     
@@ -86,6 +111,10 @@ class Device {
         return {ownId:this.#ownId}
     }
 
+    startNodeDB(databasePath){
+        this.#nodeDb = new NodeDB(databasePath)
+    }
+
     #setupListeners() {
         this.#device.events.onNodeInfoPacket.subscribe((nodeInfo) => {
             if (nodeInfo.num === this.#ownId) {
@@ -96,7 +125,9 @@ class Device {
         });
 
         this.#device.events.onMeshPacket.subscribe((packet) => {
-            //this.logger.log(`RAW ROUTING PACKET: ${JSON.stringify(packet)}`);
+            if (packet.from === 2996808676){
+                this.logger.log(`RAW ROUTING PACKET: ${JSON.stringify(packet)}`);
+            }
         });
 
         this.#device.events.onMessagePacket.subscribe((packet) => {

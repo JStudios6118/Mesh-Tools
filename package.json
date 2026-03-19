@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@meshtastic/core": "^2.6.7",
-    "@meshtastic/transport-node-serial": "^0.0.2"
-  },
-  "devDependencies": {}
+    "@meshtastic/transport-node-serial": "^0.0.2",
+    "lowdb": "^7.0.1"
+  }
 }
