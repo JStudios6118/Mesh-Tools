@@ -3,6 +3,7 @@ const { TransportNodeSerial } = require("@meshtastic/transport-node-serial");
 const { log } = require("console");
 const { EventEmitter } = require('events');
 const { JSONFilePreset } = require("lowdb/node");
+const path = require('path');
 
 //Logger.setLogLevel(LogLevel.NONE)
 
@@ -16,12 +17,15 @@ TODO:
 -ADD TCP AND HTTP CONNECTION TYPES
 -ADD A NODE DATABASE BUILDER
 -MAKE EVERYTHING ASYNCHRONOUS
-
+-
 
 */
 
 class Logger {
-    constructor(enabled=false){
+    #name;
+
+    constructor(name,enabled=false){
+        this.#name = name;
         this.enabled = enabled;
     }
 
@@ -29,20 +33,25 @@ class Logger {
         if (!this.enabled){
             return;
         }
-        console.log(`MESH-TOOLS | ${message}`)
+        console.log(`[MT] ${this.#name} | ${message}`)
     }
 }
 
 class NodeDB {
 
-    #db;
+    #db = null;
+    #dbData
     #dbPath;
 
-    constructor(databasePath){
-        this.#dbPath = databasePath;
+    async init(databasePath){
+        this.#db = await JSONFilePreset(path.join(databasePath,'nodeDb.json'), { nodes: [] });
+        this.#dbData = this.#db.data;
+        await this.#db.write();
+    }
 
-        this.#db = JSONFilePreset('nodeDb.json', { users: [] });
-
+    async pushNode(nodeInfo){
+        this.#dbData.nodes.push(nodeInfo)
+        await this.#db.write();
     }
 }
 
@@ -63,20 +72,23 @@ class Device {
     #longName;
     #shortName;
 
-    #nodeDb = null;
+    nodes = null;
 
-    #pendingMessages = new Map();
+    //#pendingMessages = new Map();
     
     events = new EventEmitter();
 
-    get ownId(){ return this.#ownId }
+    get ownId(){ return this.#ownId } // Getter for grabbing the devices own id number.
 
+    // Constructor called by extended class
     constructor(){
-        this.logger = new Logger(false);
+        this.logger = new Logger("Mesh Device",false);
     }
 
     // Connect super script. Uses transport to init a MeshDevice
     async connect(transport){
+
+        this.logger.log('Connecting Node...')
 
         if (transport.port?.flush) {
             this.logger.log('Flushing Transport')
@@ -111,10 +123,16 @@ class Device {
         return {ownId:this.#ownId}
     }
 
-    startNodeDB(databasePath){
-        this.#nodeDb = new NodeDB(databasePath)
+    async startNodeDB(databasePath){
+        this.nodes = new NodeDB();
+        await this.nodes.init(databasePath);
+
+        this.logger.log('Started Database!')
+
+        return true;
     }
 
+    // Setup listeners for different Meshtastic events
     #setupListeners() {
         this.#device.events.onNodeInfoPacket.subscribe((nodeInfo) => {
             if (nodeInfo.num === this.#ownId) {
