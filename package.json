@@ -1,6 +1,6 @@
 {
   "name": "mesh-tools",
-  "version": "1.0.2",
+  "version": "1.0.1",
   "description": "A helpful package for automating the Meshtastic node api",
   "license": "ISC",
   "author": "Josh Carlson",
