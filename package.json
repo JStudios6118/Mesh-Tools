@@ -9,11 +9,28 @@
   "scripts": {
     "test": "node test.js"
   },
+  "engines": { "node": ">=18.0.0" },
   "dependencies": {
     "@meshtastic/core": "^2.6.7",
     "@meshtastic/transport-http": "^0.2.5",
     "@meshtastic/transport-node": "^0.0.2",
     "@meshtastic/transport-node-serial": "^0.0.2",
     "lowdb": "^7.0.1"
-  }
+  },
+  "keywords": [
+    "meshtastic",
+    "mesh",
+    "iot",
+    "lora",
+    "radio",
+    "bot"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JStudios6118/Mesh-Tools"
+  },
+  "homepage": "https://github.com/JStudios6118/Mesh-Tools#readme",
+  "bugs": "https://github.com/JStudios6118/Mesh-Tools/issues",
+  "files": ["src"]
+  
 }
