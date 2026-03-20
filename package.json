@@ -1,6 +1,6 @@
 {
   "name": "mesh-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A helpful package for automating the Meshtastic node api",
   "license": "ISC",
   "author": "Josh Carlson",
@@ -9,7 +9,9 @@
   "scripts": {
     "test": "node test.js"
   },
-  "engines": { "node": ">=18.0.0" },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@meshtastic/core": "^2.6.7",
     "@meshtastic/transport-http": "^0.2.5",
@@ -31,6 +33,7 @@
   },
   "homepage": "https://github.com/JStudios6118/Mesh-Tools#readme",
   "bugs": "https://github.com/JStudios6118/Mesh-Tools/issues",
-  "files": ["src"]
-  
+  "files": [
+    "src"
+  ]
 }
