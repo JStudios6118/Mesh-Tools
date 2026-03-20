@@ -1,4 +1,14 @@
-# What this package does #
+# Mesh-Tools
+
+This is a packer made for the Meshtastic Project. I am not affiliated with Meshtastic or sponsored. This project is just for fun. [Meshtastic](https://meshtastic.org)
+
+## Documentation
+
+Here is the table of contents to the documentation;
+
+[Table Of Contents](/docs/table-of-contents.md)
+
+## What this package does #
 This package is meant to abstract the functions of the meshtastic node.js cli package. It is meant to make the developement of programs that interact with the mesh network easier and more efficient.
 
 This is a side project so don't expect this to always be up to date but I'll do my best.
