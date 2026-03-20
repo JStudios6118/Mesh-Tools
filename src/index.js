@@ -1,6 +1,9 @@
 const { MeshDevice, Protobuf  } = require("@meshtastic/core");
 const { TransportNodeSerial } = require("@meshtastic/transport-node-serial");
-const { log } = require("console");
+const { TransportHTTP } = require("@meshtastic/transport-http");
+const { TransportNode } = require("@meshtastic/transport-node");
+
+
 const { EventEmitter } = require('events');
 const { JSONFilePreset } = require("lowdb/node");
 const path = require('path');
@@ -14,26 +17,32 @@ const path = require('path');
 TODO:
 -ADD MESSAGE ACKNOWLEDGEMENT HANDLING
 -ADD TCP AND HTTP CONNECTION TYPES
--ADD A NODE DATABASE BUILDER
 -MAKE EVERYTHING ASYNCHRONOUS
--
+-ADD LOG LEVELS
+-ADD SUPPORT FOR DIFFERENT PACKET TYPES LIKE TELEMETRY AND ETC
+-ADD PROPER JSDOC DOCUMENTATION FOR AUTOFILL AND SUCH
 
 DONE:
 -ADD BROADCAST MESSAGING
+-ADD A NODE DATABASE BUILDER
 
 */
 
+// Some settings. Will add more later.
 settings = {
     print_logs: true
 }
 
+// A configure function to change global settings.
 function Configure(property, value){
     settings[property] = value
 }
 
+// Simple Logger class to provide nice looking, customizable logs
 class Logger {
     #name;
 
+    // Sets the name that will show up before a message to help identify where the message is coming from.
     constructor(name){
         this.#name = name;
     }
@@ -48,11 +57,14 @@ class Logger {
 
 class NodeDB {
 
+    // In the following functions, please note that the identifier fields can take in either the nodes number or id.
+
     #logger = new Logger('[Node DB]')
 
     #db = null;
     #dbData;
 
+    // Initialize the database file
     async init(databasePath){
         if (this.#db!=null){ this.#logger.log("Database Already Initialized. Skipping..."); return false }
 
@@ -62,6 +74,7 @@ class NodeDB {
         return true
     }
 
+    // Internal method to check if an node of an id exists and return its index.
     #checkId(input){
         //this.#logger.log(`IN: ${input}`)
         if (typeof input === "number"){
@@ -73,11 +86,13 @@ class NodeDB {
         }
     }
 
+    // Internal command that returns a node from the database based on the id. Not compatible with node number.
     #getNodeIndexById(identifier){
         if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
         return this.#dbData.nodes.findIndex(p => p.id === identifier);
     }
 
+    // Returns a bool on whether or not a node of the id exists.
     nodeExists(identifier){
         if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
         //console.log(typeof identifier)
@@ -89,6 +104,7 @@ class NodeDB {
 
     }
 
+    // Gets a desired node using the identifier
     getNode(identifier){
         if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
         const index = this.#checkId(identifier)
@@ -103,6 +119,7 @@ class NodeDB {
         return new Node(longName,shortName,id,number,storedData);
     }
 
+    // Add a node to the database. If the node is already present, update its lastheard value and validate other data. Does not affect stored data.
     async push(node){
         //console.log('pushing node:', node.id, 'number:', node.number)
         if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
@@ -128,6 +145,7 @@ class NodeDB {
         return true;
     }
 
+    // Gets the data on a desired node as defined by the identifier
     async getNodeStoredData(identifier){
         if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
 
@@ -143,6 +161,7 @@ class NodeDB {
 
     }
 
+    // Update the custom stored data in the node as defined by the identifier
     async updateStoredData(identifier, data) {
         if (this.#db === null) { this.#logger.log("Database has not been initialized yet!"); return false }
 
@@ -160,6 +179,7 @@ class NodeDB {
 
 }
 
+// Node class for NodeDB
 class Node {
     constructor(longName,shortName,id,number,storedData){
         this.longName = longName;
@@ -184,17 +204,20 @@ class Node {
 
 }
 
+// The base device class for all Meshtastic node connections. Houses all main logic and code for handling packets events and more.
 class Device {
 
-    #device = null;
-    #ownId = null;
+    #device = null; // Mesh device. When set to null, many command will not run
+    #ownId = null; // Id of connected node
     #longName;
     #shortName;
 
+    // Creates an empty db class. Does nothing by itself, needs to be activated. I didn't leave it empty for autofill reaons and my sanity.
     db = new NodeDB();
 
     //#pendingMessages = new Map();
     
+    // Creates a variable that developers can listen for events on.
     events = new EventEmitter();
 
     get ownId(){ return this.#ownId } // Getter for grabbing the devices own id number.
@@ -204,7 +227,7 @@ class Device {
         this.logger = new Logger("Mesh Device");
     }
 
-    // Connect super script. Uses transport to init a MeshDevice
+    // Connect super script. Uses transport to init a MeshDevice.
     async connect(transport){
 
         this.logger.log('Connecting Node...')
@@ -237,11 +260,12 @@ class Device {
         // Add an event listerner for ownNodeInfo to get the nodes own information
         this.#setupListeners();
 
-        this.events.emit('connect', {ownId:this.#ownId});
+        this.events.emit('connected', {ownId:this.#ownId});
         
         return {ownId:this.#ownId}
     }
 
+    // Starts and configures the Node Database.
     async startNodeDB(databasePath){
         this.db = new NodeDB();
         await this.db.init(databasePath);
@@ -253,6 +277,7 @@ class Device {
 
     // Setup listeners for different Meshtastic events
     #setupListeners() {
+        // Not sure if this does anything. Needs more testing
         this.#device.events.onNodeInfoPacket.subscribe((nodeInfo) => {
             if (nodeInfo.num === this.#ownId) {
                 this.#longName = nodeInfo.user.longName;
@@ -261,11 +286,13 @@ class Device {
             }
         });
 
+        // Unused for now
         this.#device.events.onMeshPacket.subscribe((packet) => {
             if (packet.from === 2996808676){
             }
         });
 
+        // Triggers when the node receives info about another node (name,location,etc)
         this.#device.events.onUserPacket.subscribe((packet) => {
             const dat = packet.data
             const data = {longName:dat.longName, shortName:dat.shortName, id:dat.id, number:packet.from}
@@ -274,6 +301,7 @@ class Device {
             this.events.emit("nodeInfoReceived", nodeInfo);
         })
 
+        // Triggers when a message is received. Handles packet type.
         this.#device.events.onMessagePacket.subscribe((packet) => {
             if (packet.to === this.#ownId && packet.type === 'direct'){
                 this.events.emit('receiveDm',packet)
@@ -285,24 +313,28 @@ class Device {
 
     }
 
+    // Send a message in a channel
     async sendMessage(message,channel){
         const id = await this.#device.sendText(message,0xFFFFFFFF,true,channel);  
         return id
     }
 
+    // Send a message in a channel as a reply.
     async sendReplyMessage(message,channel,replyId){
         const id = await this.#device.sendText(message,0xFFFFFFFF,true,channel,replyId);
         return id
     }
 
+    // Send a direct message to another node.
     async sendDirectMessage(message,to){
         const id = await this.#device.sendText(message,to);
         return id
         //this.logger.log(`PACKER ID: ${id}`)
     }
     
-    async sendReplyDirectMessage(message,channel,to,replyId){
-        const id = await this.#device.sendText(message,to,true,channel,replyId);
+    // Send a direct message to another node as a reply.
+    async sendReplyDirectMessage(message,to,replyId){
+        const id = await this.#device.sendText(message,to,true,null,replyId);
         return id
     }
 
@@ -333,4 +365,56 @@ class SerialNode extends Device {
 
 }
 
-module.exports = { SerialNode, Configure }
+// Constructor for Mesh Node connected to host over TCP
+// Untested
+class TCPNode extends Device {
+    
+    #tcp_ip_address;
+
+    constructor(tcp_ip_address){
+        super();
+        this.#tcp_ip_address = tcp_ip_address;
+    }
+
+    async connect() {
+        if (this.device != null) {
+            this.logger.log("Device is already connected! Skipping...");
+            return;
+        }
+
+        this.logger.log("Creating Transport...")
+
+        const transport = await TransportNode.create(this.#tcp_ip_address);
+        return await super.connect(transport);
+        
+    }
+
+}
+
+// Constructor for Mesh Node connected to host over HTTP
+// Untested
+class HTTPNode extends Device {
+    
+    #http_ip_address;
+
+    constructor(http_ip_address){
+        super();
+        this.#http_ip_address = http_ip_address;
+    }
+
+    async connect() {
+        if (this.device != null) {
+            this.logger.log("Device is already connected! Skipping...");
+            return;
+        }
+
+        this.logger.log("Creating Transport...")
+
+        const transport = await TransportHTTP.create(this.#http_ip_address);
+        return await super.connect(transport);
+        
+    }
+
+}
+
+module.exports = { SerialNode, TCPNode, HTTPNode, Configure }

@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@meshtastic/core": "^2.6.7",
+    "@meshtastic/transport-http": "^0.2.5",
+    "@meshtastic/transport-node": "^0.0.2",
     "@meshtastic/transport-node-serial": "^0.0.2",
     "lowdb": "^7.0.1"
   }

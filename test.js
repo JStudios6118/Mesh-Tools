@@ -12,11 +12,11 @@ node.connect().then((result)=>{
 
 
 node.events.on('receiveDm',(data)=>{
-    node.sendDirectMessage(`MIRROR: ${data.data}`,data.from)
+    node.sendReplyDirectMessage(`MIRROR: ${data.data}`,data.from,data.id)
 })
 
 node.events.on('receiveMessage',(data)=>{
-    console.log(`Message: ${JSON.stringify(data)}`)
+    //console.log(`Message: ${JSON.stringify(data)}`)
     if (data.data === "!test"){
         node.sendReplyMessage("Hello! Is this thing on?",data.channel,data.id);
     }
