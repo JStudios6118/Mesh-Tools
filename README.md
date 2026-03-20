@@ -1,6 +1,6 @@
 # Mesh-Tools
 
-This is a packer made for the Meshtastic Project. I am not affiliated with Meshtastic or sponsored. This project is just for fun. [Meshtastic](https://meshtastic.org)
+This is a package made for use with the Meshtastic Project. I am not affiliated with or sponsored by Meshtastic. This project is just for fun. [Meshtastic](https://meshtastic.org)
 
 This package is currently deployed to npm! 
 
