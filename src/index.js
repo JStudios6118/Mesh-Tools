@@ -50,7 +50,6 @@ class NodeDB {
 
     #db = null;
     #dbData;
-    #dbPath;
 
     async init(databasePath){
         if (this.#db!=null){ this.#logger.log("Database Already Initialized. Skipping..."); return false }
@@ -101,6 +100,7 @@ class NodeDB {
     }
 
     async push(node){
+        //console.log('pushing node:', node.id, 'number:', node.number)
         if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
         if (this.nodeExists(node.id)){
             let nodeData = this.getNode(node.id)
@@ -246,9 +246,9 @@ class Device {
 
         this.#device.events.onUserPacket.subscribe((packet) => {
             const dat = packet.data
-            const data = {longName:dat.longName, shortName:dat.shortName, id:dat.id, number:packet.id}
+            const data = {longName:dat.longName, shortName:dat.shortName, id:dat.id, number:packet.from}
             //console.log(`NODEINFO: ${JSON.stringify(packet,null,2)}`)
-            const nodeInfo = new Node(data.longName,data.shortName,data.id,data.from);
+            const nodeInfo = new Node(data.longName,data.shortName,data.id,data.number);
             this.events.emit("nodeInfoReceived", nodeInfo);
         })
 

@@ -180,7 +180,8 @@
       "longName": "KK6JDCmesh",
       "shortName": "JS16",
       "id": "!b29fabe4",
-      "lastHeard": 1773968144,
+      "number": 2996808676,
+      "lastHeard": 1773970093,
       "storedData": {}
     },
     {
@@ -253,6 +254,153 @@
       "shortName": "FRDY",
       "id": "!aaefab48",
       "lastHeard": 1773968164,
+      "storedData": {}
+    },
+    {
+      "longName": "Hooptie",
+      "shortName": "hoop",
+      "id": "!9e75dd34",
+      "lastHeard": 1773969570,
+      "storedData": {}
+    },
+    {
+      "longName": "asm beam",
+      "shortName": "asm",
+      "id": "!435b08b0",
+      "lastHeard": 1773969570,
+      "storedData": {}
+    },
+    {
+      "longName": "KJ6WEG Base [bayme.sh]",
+      "shortName": "WEGb",
+      "id": "!2c08c460",
+      "lastHeard": 1773969601,
+      "storedData": {}
+    },
+    {
+      "longName": "Pete Pi 3b+ Ebyte",
+      "shortName": "EBYT",
+      "id": "!eb401fff",
+      "lastHeard": 1773969611,
+      "storedData": {}
+    },
+    {
+      "longName": "ALC_WTK",
+      "shortName": "ALCW",
+      "id": "!35e8cc33",
+      "lastHeard": 1773969624,
+      "storedData": {}
+    },
+    {
+      "longName": "Williams Hill mrymesh.net bayme.sh",
+      "shortName": "PL@W",
+      "id": "!a2ebd98c",
+      "lastHeard": 1773969737,
+      "storedData": {}
+    },
+    {
+      "longName": "PNDA_4R",
+      "shortName": "PND4",
+      "id": "!4e50dd1d",
+      "lastHeard": 1773969737,
+      "storedData": {}
+    },
+    {
+      "longName": "KK6DAC-G2-74",
+      "shortName": "SG74",
+      "id": "!a20a1748",
+      "lastHeard": 1773969756,
+      "storedData": {}
+    },
+    {
+      "longName": "Butte SAR",
+      "shortName": "BSAR",
+      "id": "!fed77810",
+      "lastHeard": 1773969773,
+      "storedData": {}
+    },
+    {
+      "longName": "%Glen Park",
+      "shortName": "%GP",
+      "id": "!9740078b",
+      "lastHeard": 1773969922,
+      "storedData": {}
+    },
+    {
+      "longName": "Chalupa Seeed",
+      "shortName": "CG04",
+      "id": "!236c0cd4",
+      "lastHeard": 1773969967,
+      "storedData": {}
+    },
+    {
+      "longName": "KJ6TGN-95e8",
+      "shortName": "🎹",
+      "id": "!55d59406",
+      "lastHeard": 1773969970,
+      "storedData": {}
+    },
+    {
+      "longName": "KC3WNY over meshbase",
+      "shortName": "🛰",
+      "id": "!efd3553b",
+      "lastHeard": 1773970002,
+      "storedData": {}
+    },
+    {
+      "longName": "ryo | oryx",
+      "shortName": "ORYX",
+      "id": "!27ef7f03",
+      "number": 670007043,
+      "lastHeard": 1773970093,
+      "storedData": {}
+    },
+    {
+      "longName": "Tilly",
+      "shortName": "Til",
+      "id": "!a6960f60",
+      "number": 2794852192,
+      "lastHeard": 1773970093,
+      "storedData": {}
+    },
+    {
+      "longName": "Truckin Along!",
+      "shortName": "FORD",
+      "id": "!720ace96",
+      "number": 1913310870,
+      "lastHeard": 1773970093,
+      "storedData": {}
+    },
+    {
+      "longName": "ENCOM Base",
+      "shortName": "ncom",
+      "id": "!02e69a98",
+      "number": 48667288,
+      "lastHeard": 1773970115,
+      "storedData": {}
+    },
+    {
+      "longName": "telarium",
+      "shortName": "c64",
+      "id": "!dc11efa4",
+      "number": 3692162980,
+      "lastHeard": 1773970123,
+      "storedData": {}
+    },
+    {
+      "longName": "W6YX-2 📡 | https://bayme.sh",
+      "shortName": "6YX2",
+      "id": "!864f4f6a",
+      "number": 2253344618,
+      "lastHeard": 1773970230,
+      "storedData": {}
+    },
+    {
+      "longName": "The Coolest Solar Roof Node",
+      "shortName": "cool",
+      "id": "!37f177a3",
+      "number": 938571683,
+      "lastHeard": 1773970230,
       "storedData": {}
     }
   ]

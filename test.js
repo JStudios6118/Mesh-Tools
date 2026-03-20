@@ -13,9 +13,10 @@ node.events.on('receiveDm',(data)=>{
 })
 
 node.events.on('nodeInfoReceived', async (nodeinfo) => {
+    //console.log(nodeinfo)
     if (node.db.nodeExists(nodeinfo.id)){
         console.log("node exists")
     }
     await node.db.push(nodeinfo)
-    console.log(`Logged User ${nodeinfo.longName}`)
+    //console.log(`Logged User ${nodeinfo.longName}`)
 })
