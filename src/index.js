@@ -13,11 +13,13 @@ const path = require('path');
 
 TODO:
 -ADD MESSAGE ACKNOWLEDGEMENT HANDLING
--ADD BROADCAST MESSAGING
 -ADD TCP AND HTTP CONNECTION TYPES
 -ADD A NODE DATABASE BUILDER
 -MAKE EVERYTHING ASYNCHRONOUS
 -
+
+DONE:
+-ADD BROADCAST MESSAGING
 
 */
 
@@ -61,7 +63,7 @@ class NodeDB {
     }
 
     #checkId(input){
-        this.#logger.log(`IN: ${input}`)
+        //this.#logger.log(`IN: ${input}`)
         if (typeof input === "number"){
             return this.#dbData.nodes.findIndex(p => p.number === input)
         } else if (typeof input === "string"){
@@ -93,6 +95,8 @@ class NodeDB {
         if (index===-1){
             return null;
         }
+
+        //this.#logger.log(`Index of Node: ${index}`)
 
         const { longName, shortName, id, number, storedData } = this.#dbData.nodes[index]; 
 
@@ -131,9 +135,27 @@ class NodeDB {
         if (index===-1){
             return null;
         }
+
+        //this.#logger.log(`All Node Data: ${JSON.stringify(this.getNode(identifier),null,2)}`)
+
         return this.getNode(identifier).storedData;
 
 
+    }
+
+    async updateStoredData(identifier, data) {
+        if (this.#db === null) { this.#logger.log("Database has not been initialized yet!"); return false }
+
+        const index = this.#checkId(identifier);
+        if (index === -1) { this.#logger.log("Node not found!"); return false }
+
+        this.#dbData.nodes[index].storedData = {
+            ...this.#dbData.nodes[index].storedData,
+            ...data
+        };
+
+        await this.#db.write();
+        return true;
     }
 
 }
@@ -254,17 +276,18 @@ class Device {
 
         this.#device.events.onMessagePacket.subscribe((packet) => {
             if (packet.to === this.#ownId && packet.type === 'direct'){
-                this.events.emit('receiveDm', {...packet})
+                this.events.emit('receiveDm',packet)
             } else if (packet.type === 'broadcast') {
-                this.events.emit('receiveMessage',{...packet})
+                this.events.emit('receiveMessage',packet)
             }
         });
 
 
     }
 
-    sendMessage(){
-        const id = this.#device.sendText(message,to);  
+    async sendMessage(message,to,channel){
+        const id = await this.#device.sendText(message,to,true,channel);  
+        return { packetId:id };
     }
 
     async sendDirectMessage(message,to){
