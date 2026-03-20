@@ -19,3 +19,4 @@ env.*
 # Build output
 dist/
 build/
+nodeDb.json

@@ -21,16 +21,23 @@ TODO:
 
 */
 
+settings = {
+    print_logs: true
+}
+
+function Configure(property, value){
+    settings[property] = value
+}
+
 class Logger {
     #name;
 
-    constructor(name,enabled=false){
+    constructor(name){
         this.#name = name;
-        this.enabled = enabled;
     }
 
     log(message){
-        if (!this.enabled){
+        if (!settings.print_logs){
             return;
         }
         console.log(`[MT] ${this.#name} | ${message}`)
@@ -39,18 +46,76 @@ class Logger {
 
 class NodeDB {
 
+    #logger = new Logger('[Node DB]')
+
     #db = null;
     #dbData;
     #dbPath;
 
     async init(databasePath){
+        if (this.#db!=null){ console.log(); return false }
+
         this.#db = await JSONFilePreset(path.join(databasePath,'nodeDb.json'), { nodes: [] });
         this.#dbData = this.#db.data;
         await this.#db.write();
+        return true
     }
 
-    push(node){
-        
+    #getNodeIndexById(){
+        return this.#dbData.nodes.findIndex(p => p.id === identifier);
+    }
+
+    nodeExists(identifier){
+        //console.log(typeof identifier)
+        let index;
+        if (typeof identifier === "number"){
+            index = this.#dbData.nodes.findIndex(p => p.number === identifier)
+        } else if (typeof identifier === "string"){
+            index = this.#dbData.nodes.findIndex(p => p.id === identifier)
+        } else {
+            throw new Error('.nodeExists: Invalid type! Must be either a string or number.');
+        }
+        if (index===-1){
+            return false;
+        }
+        return true;
+
+    }
+
+    getNode(identifier){
+        let index;
+        if (typeof identifier === "number"){
+            index = this.#dbData.nodes.findIndex(p => p.number === identifier)
+        } else if (typeof identifier === "string"){
+            index = this.#dbData.nodes.findIndex(p => p.id === identifier)
+        } else {
+            throw new Error('.getNode: Invalid type! Must be either a string or number.');
+        }
+        if (index===-1){
+            return null;
+        }
+        return this.#dbData.nodes[index];
+    }
+
+    async push(node){
+        if (this.nodeExists(node.id)){
+            let nodeData = this.getNode(node.id)
+            this.#dbData.nodes[this.#getNodeIndexById(node.id)]({
+                ...nodeData.info(),
+                longName:node.longName,
+                shortName:node.shortName,
+                lastHeard: Math.floor(Date.now() / 1000)
+            })
+        } else {
+            //console.log(node.info())
+            this.#dbData.nodes.push(node.info())
+        }
+
+        //console.log("Succeeded!")
+
+        await this.#db.write();
+
+        return true;
     }
 
 }
@@ -86,7 +151,7 @@ class Device {
     #longName;
     #shortName;
 
-    db = null;
+    db = new NodeDB();
 
     //#pendingMessages = new Map();
     
@@ -96,7 +161,7 @@ class Device {
 
     // Constructor called by extended class
     constructor(){
-        this.logger = new Logger("Mesh Device",false);
+        this.logger = new Logger("Mesh Device");
     }
 
     // Connect super script. Uses transport to init a MeshDevice
@@ -138,8 +203,8 @@ class Device {
     }
 
     async startNodeDB(databasePath){
-        this.nodes = new NodeDB();
-        await this.nodes.init(databasePath);
+        this.db = new NodeDB();
+        await this.db.init(databasePath);
 
         this.logger.log('Started Database!')
 
@@ -166,7 +231,7 @@ class Device {
             const data = {longName:dat.longName, shortName:dat.shortName, id:dat.id, number:packet.id}
             //console.log(`NODEINFO: ${JSON.stringify(packet,null,2)}`)
             const nodeInfo = new Node(data.longName,data.shortName,data.id,data.number);
-            this.events.emit("nodeInfoReceived", {...nodeInfo});
+            this.events.emit("nodeInfoReceived", nodeInfo);
         })
 
         this.#device.events.onMessagePacket.subscribe((packet) => {
@@ -217,4 +282,4 @@ class SerialNode extends Device {
 
 }
 
-module.exports = { SerialNode }
+module.exports = { SerialNode, Configure }
