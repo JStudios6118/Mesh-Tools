@@ -53,7 +53,7 @@ class NodeDB {
     #dbPath;
 
     async init(databasePath){
-        if (this.#db!=null){ console.log(); return false }
+        if (this.#db!=null){ this.#logger.log("Database Already Initialized. Skipping..."); return false }
 
         this.#db = await JSONFilePreset(path.join(databasePath,'nodeDb.json'), { nodes: [] });
         this.#dbData = this.#db.data;
@@ -61,20 +61,26 @@ class NodeDB {
         return true
     }
 
-    #getNodeIndexById(){
+    #checkId(input){
+        this.#logger.log(`IN: ${input}`)
+        if (typeof input === "number"){
+            return this.#dbData.nodes.findIndex(p => p.number === input)
+        } else if (typeof input === "string"){
+            return this.#dbData.nodes.findIndex(p => p.id === input)
+        } else {
+            throw new Error('.nodeExists: Invalid type! Must be either a string or number.');
+        }
+    }
+
+    #getNodeIndexById(identifier){
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
         return this.#dbData.nodes.findIndex(p => p.id === identifier);
     }
 
     nodeExists(identifier){
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
         //console.log(typeof identifier)
-        let index;
-        if (typeof identifier === "number"){
-            index = this.#dbData.nodes.findIndex(p => p.number === identifier)
-        } else if (typeof identifier === "string"){
-            index = this.#dbData.nodes.findIndex(p => p.id === identifier)
-        } else {
-            throw new Error('.nodeExists: Invalid type! Must be either a string or number.');
-        }
+        const index = this.#checkId(identifier)
         if (index===-1){
             return false;
         }
@@ -83,32 +89,32 @@ class NodeDB {
     }
 
     getNode(identifier){
-        let index;
-        if (typeof identifier === "number"){
-            index = this.#dbData.nodes.findIndex(p => p.number === identifier)
-        } else if (typeof identifier === "string"){
-            index = this.#dbData.nodes.findIndex(p => p.id === identifier)
-        } else {
-            throw new Error('.getNode: Invalid type! Must be either a string or number.');
-        }
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
+        const index = this.#checkId(identifier)
         if (index===-1){
             return null;
         }
-        return this.#dbData.nodes[index];
+
+        const { longName, shortName, id, number, storedData } = this.#dbData.nodes[index]; 
+
+        return new Node(longName,shortName,id,number,storedData);
     }
 
     async push(node){
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
         if (this.nodeExists(node.id)){
             let nodeData = this.getNode(node.id)
-            this.#dbData.nodes[this.#getNodeIndexById(node.id)]({
-                ...nodeData.info(),
+            this.#dbData.nodes[this.#getNodeIndexById(node.id)] = {
+                ...nodeData.info,
+                id:node.id,
+                number:node.number,
                 longName:node.longName,
                 shortName:node.shortName,
                 lastHeard: Math.floor(Date.now() / 1000)
-            })
+            }
         } else {
             //console.log(node.info())
-            this.#dbData.nodes.push(node.info())
+            this.#dbData.nodes.push(node.info)
         }
 
         //console.log("Succeeded!")
@@ -118,20 +124,32 @@ class NodeDB {
         return true;
     }
 
+    async getNodeStoredData(identifier){
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
+
+        const index = this.#checkId(identifier)
+        if (index===-1){
+            return null;
+        }
+        return this.getNode(identifier).storedData;
+
+
+    }
+
 }
 
 class Node {
-    constructor(longName,shortName,id,number){
+    constructor(longName,shortName,id,number,storedData){
         this.longName = longName;
         this.shortName = shortName;
         this.id = id;
         this.number = number;
         this.lastHeard = Math.floor(Date.now() / 1000); // Set lastHeard time to current epoch time
-        this.storedData = {};
+        this.storedData = storedData || {};
     }
 
     // Returns all data on Node as a JSON object.
-    info(){
+    get info(){
         return {
             longName:this.longName,
             shortName:this.shortName,
@@ -230,7 +248,7 @@ class Device {
             const dat = packet.data
             const data = {longName:dat.longName, shortName:dat.shortName, id:dat.id, number:packet.id}
             //console.log(`NODEINFO: ${JSON.stringify(packet,null,2)}`)
-            const nodeInfo = new Node(data.longName,data.shortName,data.id,data.number);
+            const nodeInfo = new Node(data.longName,data.shortName,data.id,data.from);
             this.events.emit("nodeInfoReceived", nodeInfo);
         })
 
