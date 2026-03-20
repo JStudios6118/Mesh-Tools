@@ -178,6 +178,18 @@ class NodeDB {
         return true;
     }
 
+    async updateLastHeard(identifier){
+        if (this.#db === null) { this.#logger.log("Database has not been initialized yet!"); return false }
+        
+        const index = this.#checkId(identifier);
+        if (index === -1) { this.#logger.log("Node not found!"); return false }
+
+        this.#dbData.nodes[index].lastHeard = Math.floor(Date.now() / 1000);
+
+        await this.#db.write;
+        return true;
+    }
+
 }
 
 // Node class for NodeDB

@@ -29,5 +29,7 @@ node.events.on('nodeInfoReceived', async (nodeinfo) => {
         console.log("node exists")
     }
     await node.db.push(nodeinfo)
+
+    await node.db.updateStoredData(nodeinfo.id, { randomNumber:Math.random() });
     //console.log(`Logged User ${nodeinfo.longName}`)
 })
