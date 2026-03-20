@@ -16,7 +16,10 @@ node.events.on('receiveDm',(data)=>{
 })
 
 node.events.on('receiveMessage',(data)=>{
-    console.log(`Message: ${packet}`)
+    console.log(`Message: ${JSON.stringify(data)}`)
+    if (data.data === "!test"){
+        node.sendReplyMessage("Hello! Is this thing on?",data.channel,data.id);
+    }
 })
 
 node.events.on('nodeInfoReceived', async (nodeinfo) => {

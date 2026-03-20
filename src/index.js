@@ -285,15 +285,25 @@ class Device {
 
     }
 
-    async sendMessage(message,to,channel){
-        const id = await this.#device.sendText(message,to,true,channel);  
-        return { packetId:id };
+    async sendMessage(message,channel){
+        const id = await this.#device.sendText(message,0xFFFFFFFF,true,channel);  
+        return id
+    }
+
+    async sendReplyMessage(message,channel,replyId){
+        const id = await this.#device.sendText(message,0xFFFFFFFF,true,channel,replyId);
+        return id
     }
 
     async sendDirectMessage(message,to){
         const id = await this.#device.sendText(message,to);
-        return { packetId:id }
+        return id
         //this.logger.log(`PACKER ID: ${id}`)
+    }
+    
+    async sendReplyDirectMessage(message,channel,to,replyId){
+        const id = await this.#device.sendText(message,to,true,channel,replyId);
+        return id
     }
 
 }
