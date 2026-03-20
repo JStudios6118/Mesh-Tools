@@ -2,7 +2,9 @@
 
 This is a packer made for the Meshtastic Project. I am not affiliated with Meshtastic or sponsored. This project is just for fun. [Meshtastic](https://meshtastic.org)
 
-This package is currently deployed to npm! [Mesh Tools NPM](https://www.npmjs.com/package/mesh-tools)
+This package is currently deployed to npm! 
+
+### Download: [Mesh Tools NPM](https://www.npmjs.com/package/mesh-tools)
 
 Use `npm i mesh-tools` to use in your project!
 
