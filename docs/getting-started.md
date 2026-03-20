@@ -67,9 +67,13 @@ All methods to send messages are asynchronous and will return the packet id of t
 
 ## Thanks for Reading
 
-This is my basic getting started guide. There is more that you can do with my package which you can find in my other documentation once I have time to write it. I will have another document with instructions on using the Node Database soon.
+This is my basic getting started guide. There is more that you can do with my package which you can find in my other documentation once I have time to write it.
+
+If you would like to learn how to use the built-in database, use this guide: [Using NodeDB](/docs/node-db.md)
 
 Please give this repo a star if you find it cool and helpful!
 
 Thanks!
 -JStudios6118
+
+[Table of Contents](/docs/table-of-contents.md)

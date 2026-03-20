@@ -12,6 +12,7 @@ node.connect().then((result)=>{
 
 
 node.events.on('receiveDm',(data)=>{
+    console.log("MEssage!!!")
     node.sendReplyDirectMessage(`MIRROR: ${data.data}`,data.from,data.id)
 })
 
