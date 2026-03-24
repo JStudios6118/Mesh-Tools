@@ -17,12 +17,13 @@ const path = require('path');
 TODO:
 -ADD MESSAGE ACKNOWLEDGEMENT HANDLING
 -MAKE EVERYTHING ASYNCHRONOUS
--ADD LOG LEVELS
 -ADD SUPPORT FOR MORE PACKET TYPES LIKE TELEMETRY AND ETC
+-MOVE ALL ERRORS TO THE NEW LOG LEVEL SYSTEM
 -ADD PROPER JSDOC DOCUMENTATION FOR AUTOFILL AND SUCH
 -ADD PROPER ERROR HANDLING FOR ALL FUNCTIONS
 
 DONE:
+-ADD LOG LEVELS
 -ADD BROADCAST MESSAGING
 -ADD A NODE DATABASE BUILDER
 -ADD TCP AND HTTP CONNECTION TYPES
@@ -31,8 +32,19 @@ DONE:
 
 // Some settings. Will add more later.
 settings = {
-    print_logs: true
+    print_logs: true,
+    min_log_level: 1,
+    max_log_level: 5,
 }
+
+LOG_LEVEL_VERBOSE = [
+    "DEBUG",
+    "INFO",
+    "INFO",
+    "WARNING",
+    "ERROR",
+    "FATAL"
+]
 
 // A configure function to change global settings.
 function Configure(property, value){
@@ -46,16 +58,31 @@ function Configure(property, value){
 class Logger {
     #name;
 
+    // Log Level Levels
+    // 1 - Debug
+    // 2 - Info
+    // 3 - Warn
+    // 4 - Error
+    // 5 - Fatal Error [ALWAYS TRIGGERS]
+
     // Sets the name that will show up before a message to help identify where the message is coming from.
     constructor(name){
         this.#name = name;
     }
 
-    log(message){
+    log(message,level=2){
+
+        if (level >= 5){
+            throw new Error(`\x1b[31m[FATAL] ${this.#name} There has been a fatal error!\x1b[0m\n\n${message}`);
+        }
+
         if (!settings.print_logs){
             return;
         }
-        console.log(`[MT] ${this.#name} | ${message}`)
+        if (level <= settings.min_log_level || level >= settings.max_log_level){
+            return;
+        }
+        console.log(`[${LOG_LEVEL_VERBOSE[level-1]}] ${this.#name} | ${message}`)
     }
 }
 
@@ -70,7 +97,7 @@ class NodeDB {
 
     // Initialize the database file
     async init(databasePath){
-        if (this.#db!=null){ this.#logger.log("Database Already Initialized. Skipping..."); return false }
+        if (this.#db!=null){ this.#logger.log("Database Already Initialized. Skipping...",3); return false }
 
         this.#db = await JSONFilePreset(path.join(databasePath,'nodeDb.json'), { nodes: [] });
         this.#dbData = this.#db.data;
@@ -92,13 +119,13 @@ class NodeDB {
 
     // Internal command that returns a node from the database based on the id. Not compatible with node number.
     #getNodeIndexById(identifier){
-        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!",3); return false }
         return this.#dbData.nodes.findIndex(p => p.id === identifier);
     }
 
     // Returns a bool on whether or not a node of the id exists.
     nodeExists(identifier){
-        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!",3); return false }
         //console.log(typeof identifier)
         const index = this.#checkId(identifier)
         if (index===-1){
@@ -110,7 +137,7 @@ class NodeDB {
 
     // Gets a desired node using the identifier
     getNode(identifier){
-        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!",3); return false }
         const index = this.#checkId(identifier)
         if (index===-1){
             return null;
@@ -126,7 +153,7 @@ class NodeDB {
     // Add a node to the database. If the node is already present, update its lastheard value and validate other data. Does not affect stored data.
     async push(node){
         //console.log('pushing node:', node.id, 'number:', node.number)
-        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!",3); return false }
         if (this.nodeExists(node.id)){
             let nodeData = this.getNode(node.id)
             this.#dbData.nodes[this.#getNodeIndexById(node.id)] = {
@@ -151,7 +178,7 @@ class NodeDB {
 
     // Gets the data on a desired node as defined by the identifier
     async getNodeStoredData(identifier){
-        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!"); return false }
+        if (this.#db===null){ this.#logger.log("Database has not been initialized yet!",3); return false }
 
         const index = this.#checkId(identifier)
         if (index===-1){
@@ -167,10 +194,10 @@ class NodeDB {
 
     // Update the custom stored data in the node as defined by the identifier
     async updateStoredData(identifier, data) {
-        if (this.#db === null) { this.#logger.log("Database has not been initialized yet!"); return false }
+        if (this.#db === null) { this.#logger.log("Database has not been initialized yet!",3); return false }
 
         const index = this.#checkId(identifier);
-        if (index === -1) { this.#logger.log("Node not found!"); return false }
+        if (index === -1) { this.#logger.log("Node not found!",2); return false }
 
         this.#dbData.nodes[index].storedData = {
             ...this.#dbData.nodes[index].storedData,
@@ -182,7 +209,7 @@ class NodeDB {
     }
 
     async updateLastHeard(identifier){
-        if (this.#db === null) { this.#logger.log("Database has not been initialized yet!"); return false }
+        if (this.#db === null) { this.#logger.log("Database has not been initialized yet!",3); return false }
         
         const index = this.#checkId(identifier);
         if (index === -1) { this.#logger.log("Node not found!"); return false }
@@ -223,6 +250,10 @@ class Node {
 // The base device class for all Meshtastic node connections. Houses all main logic and code for handling packets events and more.
 class Device {
 
+    quit_program_on_device_disconnect = true;
+
+    #transport = null;
+
     #device = null; // Mesh device. When set to null, many command will not run
     #ownId = null; // Id of connected node
     #longName;
@@ -246,6 +277,8 @@ class Device {
     // Connect super script. Uses transport to init a MeshDevice.
     async connect(transport){
 
+        this.#transport = transport;
+
         //console.log(`TRANSPORT: ${transport}`)
 
         try {
@@ -262,7 +295,7 @@ class Device {
 
         } catch (err) {
 
-            throw new Error(`The program ran into a critical issue while connecting your node! Check to make sure your node is connected properly.\nDetails: ${err}`)
+            this.logger.log(`The program ran into a critical issue while connecting your node! Check to make sure your node is connected properly.\nDetails: ${err}`,5)
 
         }
 
@@ -336,6 +369,25 @@ class Device {
             }
         });
 
+        process.on('uncaughtException', (err) => {
+            if (err.code === 'ABORT_ERR' || err.cause?.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+                this.logger.log("Device disconnect detected. Check the connection to your device if this was not intentional",3)
+                this.events.emit('disconnected');
+                if (this.quit_program_on_device_disconnect){
+                    this.logger.log(`The connected node disconnected unexpectadly. The program will close based on your preferences.`,5);
+                }
+                return;
+            }
+            throw err; // rethrow anything unrelated
+        });
+
+        process.on('unhandledRejection', (reason) => {
+            if (reason?.code === 'ABORT_ERR' || reason?.cause?.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+                return;
+            }
+            throw reason;
+        });
+
 
     }
 
@@ -370,7 +422,6 @@ class Device {
 class SerialNode extends Device {
     
     #serial_address;
-    #transport;
 
     constructor(serial_address){
         super();
@@ -385,13 +436,15 @@ class SerialNode extends Device {
 
         this.logger.log("Creating Transport...")
 
+        let transport = null;
+
         try {
-            this.#transport = await TransportNodeSerial.create(this.#serial_address)
+            transport = await TransportNodeSerial.create(this.#serial_address)
         } catch (err) {
             throw new Error("Could not create the serial transport. Is the correct port selected?")
         }
 
-        return await super.connect(this.#transport);        
+        return await super.connect(transport);        
     }
 
 }
@@ -413,11 +466,14 @@ class TCPNode extends Device {
             return false;
         }
 
-        this.logger.log("Creating Transport...")
+        let transport = null;
 
-        const transport = await TransportNode.create(this.#tcp_ip_address).catch((err) => {
+        this.logger.log("Creating Transport...")
+        try {
+            transport = await TransportNode.create(this.#tcp_ip_address)
+        } catch (err) {
             throw new Error("Creation of the TCP Transport Failed! Do you have the correct ip?")
-        });
+        }
 
         return await super.connect(transport);
         
@@ -444,9 +500,14 @@ class HTTPNode extends Device {
 
         this.logger.log("Creating Transport...")
 
-        const transport = await TransportHTTP.create(this.#http_ip_address).catch((err) => {
+        let transport = null;
+
+        try {
+            transport = await TransportHTTP.create(this.#http_ip_address)
+        } catch (err) {
             throw new Error("Creation of the HTTP Transport Failed! Do you have the correct ip?")
-        });
+        }
+
         return await super.connect(transport);
         
     }

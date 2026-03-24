@@ -1,3 +1,5 @@
+[Table of Contents](/docs/table-of-contents.md)
+
 # Getting Started
 
 This is the quick start quide to get started with mesh-tools.
@@ -31,6 +33,7 @@ There are a handful of events you can listen for in MeshTools. Here is a list of
 | event name | description |
 |------------|-------------|
 |`connected`| gets emitted once the node has successfully connected to the program |
+|`disconnected`| gets emitted when the connected node suddenly disconnects
 |`nodeInfoReceived`| gets emitted when the connected node receives info about another node |
 |`ownNameReceived`| gets emitted when the device receives its own information|
 |`receiveDm`| gets emitted when the node receives a dm from another node |
@@ -75,5 +78,7 @@ Please give this repo a star if you find it cool and helpful!
 
 Thanks!
 -JStudios6118
+
+---
 
 [Table of Contents](/docs/table-of-contents.md)

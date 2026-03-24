@@ -1,3 +1,5 @@
+[Table of Contents](/docs/table-of-contents.md)
+
 # Getting Started with the Built-In NodeDB
 
 My package features a simple, built-in, database. It uses the popular package lowdb to manage the database. By default, the database feature is turned off and must be activated by running a method.
@@ -80,5 +82,7 @@ As you can tell, it is very easy to work with the database. I will be adding mor
 If you like this package, please give me a star on github!
 
 JStudios6118
+
+---
 
 [Table of Contents](/docs/table-of-contents.md)
