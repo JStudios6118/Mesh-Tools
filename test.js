@@ -9,6 +9,7 @@ node.connect().then((result)=>{
     })
 })
 
+mt.Configure('ffffff', 'dddd')
 
 
 node.events.on('receiveDm',(data)=>{

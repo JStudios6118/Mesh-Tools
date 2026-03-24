@@ -36,7 +36,10 @@ settings = {
 
 // A configure function to change global settings.
 function Configure(property, value){
-    settings[property] = value
+    if(settings[property]){
+        throw new Error("That property is invalid!")
+    }
+    settings[property] = value;
 }
 
 // Simple Logger class to provide nice looking, customizable logs
@@ -243,15 +246,25 @@ class Device {
     // Connect super script. Uses transport to init a MeshDevice.
     async connect(transport){
 
-        this.logger.log('Connecting Node...')
+        //console.log(`TRANSPORT: ${transport}`)
 
-        if (transport.port?.flush) {
-            this.logger.log('Flushing Transport')
-            await transport.port.flush();
+        try {
+
+            this.logger.log('Connecting Node...')
+
+            if (transport.port?.flush) {
+                this.logger.log('Flushing Transport')
+                await transport.port.flush();
+            }
+
+            this.#device = new MeshDevice(transport);
+            this.#device.log.settings.minLevel = 5;
+
+        } catch (err) {
+
+            throw new Error(`The program ran into a critical issue while connecting your node! Check to make sure your node is connected properly.\nDetails: ${err}`)
+
         }
-
-        this.#device = new MeshDevice(transport);
-        this.#device.log.settings.minLevel = 5;
 
         // wait for the configured event instead of awaiting configure()
         await new Promise((resolve, reject) => {
@@ -357,6 +370,7 @@ class Device {
 class SerialNode extends Device {
     
     #serial_address;
+    #transport;
 
     constructor(serial_address){
         super();
@@ -371,9 +385,13 @@ class SerialNode extends Device {
 
         this.logger.log("Creating Transport...")
 
-        const transport = await TransportNodeSerial.create(this.#serial_address);
-        return await super.connect(transport);
-        
+        try {
+            this.#transport = await TransportNodeSerial.create(this.#serial_address)
+        } catch (err) {
+            throw new Error("Could not create the serial transport. Is the correct port selected?")
+        }
+
+        return await super.connect(this.#transport);        
     }
 
 }
@@ -392,12 +410,15 @@ class TCPNode extends Device {
     async connect() {
         if (this.device != null) {
             this.logger.log("Device is already connected! Skipping...");
-            return;
+            return false;
         }
 
         this.logger.log("Creating Transport...")
 
-        const transport = await TransportNode.create(this.#tcp_ip_address);
+        const transport = await TransportNode.create(this.#tcp_ip_address).catch((err) => {
+            throw new Error("Creation of the TCP Transport Failed! Do you have the correct ip?")
+        });
+
         return await super.connect(transport);
         
     }
@@ -423,7 +444,9 @@ class HTTPNode extends Device {
 
         this.logger.log("Creating Transport...")
 
-        const transport = await TransportHTTP.create(this.#http_ip_address);
+        const transport = await TransportHTTP.create(this.#http_ip_address).catch((err) => {
+            throw new Error("Creation of the HTTP Transport Failed! Do you have the correct ip?")
+        });
         return await super.connect(transport);
         
     }
