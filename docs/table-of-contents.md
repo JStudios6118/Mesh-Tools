@@ -5,6 +5,11 @@
 - Beginner Guides
     - [Getting Started](/docs/getting-started.md)
     - [Using NodeDB](/docs/node-db.md)
+- Node Device
+    - [Device Settings](/docs/device-settings.md)
+    - [Device Events](/docs/events.md)
+- NodeDB
+    - Coming Soon...
 - Miscellaneous
     - [Global Settings](/docs/global-settings.md)
 
